@@ -106,8 +106,13 @@ if __name__ == '__main__':
 
 
 #  drop  table YC_OneDay;
+# 修改字段类型
 #alter table YC_OneDay modify  column pm25 int  ;
 
+
+# 查询ＰＭ25最严重前３０
+
+# select dtime,AQI,levels,pm25  from YC_OneDay order by pm25 desc limit 30;
 
 
 
