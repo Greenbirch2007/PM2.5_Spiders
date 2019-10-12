@@ -10,9 +10,12 @@ import requests
 from lxml import etree
 from selenium import webdriver
 
-driver = webdriver.Chrome()
+month = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+
 
 def get_one_page(url):
+
+
 
     driver.get(url)
     html = driver.page_source
@@ -53,20 +56,6 @@ def parse_oneDay(html):
 
 
 
-def Python_sel_Mysql():
-    # 使用cursor()方法获取操作游标
-    connection = pymysql.connect(host='127.0.0.1', port=3306, user='root', password='123456', db='PM25',
-                                 charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
-    cur = connection.cursor()
-    #sql 语句
-    for i in range(67,88):
-        sql = 'select links from XA_links where id = %s ' % i
-        # #执行sql语句
-        cur.execute(sql)
-        # #获取所有记录列表
-        data = cur.fetchone()
-        url = data['links']
-        yield url
 
 
 
@@ -76,7 +65,7 @@ def insertDB(content):
     cursor = connection.cursor()
     # 这里是判断big_list的长度，不是content字符的长度
     try:
-        cursor.executemany('insert into XA_OneDay (dtime,AQI,levels,pm25) values (%s,%s,%s,%s)', content)
+        cursor.executemany('insert into YC_OneDay (dtime,AQI,levels,pm25) values (%s,%s,%s,%s)', content)
         connection.commit()
         connection.close()
         print('向MySQL中添加数据成功！')
@@ -89,19 +78,25 @@ def insertDB(content):
 #网络不好，也影响爬虫！
 
 if __name__ == '__main__':
-    for url_str in Python_sel_Mysql():
-        time.sleep(2)
-
-        html = get_one_page(url_str)
-        time.sleep(2)
-
-        contet = parse_oneDay(html)
-        insertDB(contet)
-        print(datetime.datetime.now())
+    options = webdriver.ChromeOptions()
+    options.add_argument("--no-sandbox")
+    driver = webdriver.Chrome("/usr/bin/chromedriver", chrome_options=options)
+    for year in ["2014", "2015", "2016", "2017", "2018", "2019"]:
+        for m in month:
+            full_date  = year+ m
+            url = 'http://www.tianqihoubao.com/aqi/yinchuan-'+str(full_date)+'.html'
 
 
-# #
-# create table XA_OneDay(
+            html = get_one_page(url)
+
+            contet = parse_oneDay(html)
+
+            insertDB(contet)
+            print(datetime.datetime.now())
+
+
+# dtime,AQI,levels,pm25
+# create table YC_OneDay(
 # id int not null primary key auto_increment,
 # dtime varchar(10),
 # AQI varchar(10),
@@ -110,18 +105,10 @@ if __name__ == '__main__':
 # ) engine=InnoDB  charset=utf8;
 
 
-#  drop  table XA_OneDay;
+#  drop  table YC_OneDay;
+#alter table YC_OneDay modify  column pm25 int  ;
 
 
 
 
 
-
-
-# b = ['\n                                        2019-03-01', '92\n                                       ', '\n                                       良', '67']
-# w = []
-# for item in b:
-#
-#     z = ''.join(item.split())
-#     w.append(z)
-# print(w)
